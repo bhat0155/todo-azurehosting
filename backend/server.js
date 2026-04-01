@@ -1,23 +1,30 @@
 const express = require('express')
 const cors = require('cors')
 const app = express();
+const {PrismaClient}=require('@prisma/client');
+const prisma = new PrismaClient()
 app.use(cors())
 app.use(express.json());
 
-const todoArray=[];
+
 
 app.get('/', (req, res)=>{
     res.send("Hello world, this is a sample todo app backend built with express")
 })
 
-app.get('/todos', (req, res) => {
-    res.status(200).json(todoArray)
+app.get('/todos', async (req, res) => {
+    const todos = await prisma.todo.findMany();
+    res.status(200).json(todos)
 })
 
 // get a todo from id
-app.get('/todos/:id', (req, res)=>{
+app.get('/todos/:id', async (req, res)=>{
     const {id}=req.params;
-    const todo = todoArray.find((item)=> item.id === parseInt(id));
+    const todo = await prisma.todo.findUnique({
+        where: {
+            id: parseInt(id)
+        }
+    });
     if(todo){
         res.status(200).json(todo)
     }else{
@@ -25,30 +32,53 @@ app.get('/todos/:id', (req, res)=>{
     }
 })
 
-app.post('/todos', (req, res)=>{
+app.post('/todos', async (req, res)=>{
     const {title}=req.body;
-    const newTodo = {id: Date.now(), title, completed: false};
-    todoArray.push(newTodo);
+    const newTodo = await prisma.todo.create({
+        data: {
+            title,
+            completed: false
+        }
+    });
     res.status(201).json(newTodo)
 })
 
-app.patch('/todos/:id', (req,res)=>{
+app.patch('/todos/:id', async (req,res)=>{
     const {id}=req.params;
-    const todo = todoArray.find((item)=> item.id === parseInt(id));
+    const todo = await prisma.todo.findUnique({
+        where: {
+            id: parseInt(id)
+        }
+    });
     if(todo){
         const {completed} = req.body;
-        todo.completed = completed;
-        res.status(200).json(todo)  
+        const updatedTodo = await prisma.todo.update({
+            where: {
+                id: parseInt(id)
+            },
+            data: {
+                completed
+            }
+        });
+        res.status(200).json(updatedTodo)  
     }else{
         res.status(404).json({message: 'Todo not found'})
     }
 })
 
-app.delete('/todos/:id', (req,res)=>{
+app.delete('/todos/:id', async (req,res)=>{
     const {id}=req.params;
-    const index = todoArray.findIndex((item)=> item.id === parseInt(id));
-    if(index !== -1){
-        todoArray.splice(index, 1);
+    const todo = await prisma.todo.findUnique({
+        where: {
+            id: parseInt(id)
+        }
+    });
+    if(todo){
+        await prisma.todo.delete({
+            where: {
+                id: parseInt(id)
+            }
+        });
         res.status(200).json({message: 'Todo deleted successfully'})
     }else{
         res.status(404).json({message: 'Todo not found'})
