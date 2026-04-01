@@ -1,7 +1,5 @@
 # Deploying Your Todo App to Azure — A Three-Tier Architecture Guide
 
-> A senior developer's guide for junior developers. Every concept is explained before every command. No assumed knowledge.
-
 ---
 
 ## Table of Contents
