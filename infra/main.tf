@@ -6,6 +6,13 @@ terraform {
       version = "~> 3.100"
     }
   }
+
+  backend "azurerm" {
+    resource_group_name = "NetworkWatcherRG"
+    storage_account_name = "ekamterra"                                                                                                      
+    container_name       = "demo"
+    key                  = "todo-azure.tfstate"   
+  }
 }
 
 provider "azurerm" {
