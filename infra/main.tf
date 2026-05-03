@@ -1,5 +1,5 @@
 terraform {
-    required_version = ">= 1.5.0"
+  required_version = ">= 1.5.0"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -8,10 +8,10 @@ terraform {
   }
 
   backend "azurerm" {
-    resource_group_name = "NetworkWatcherRG"
-    storage_account_name = "ekamterra"                                                                                                      
+    resource_group_name  = "NetworkWatcherRG"
+    storage_account_name = "ekamterra"
     container_name       = "demo"
-    key                  = "todo-azure.tfstate"   
+    key                  = "todo-azure.tfstate"
   }
 }
 
@@ -24,8 +24,8 @@ resource "azurerm_resource_group" "main" {
   location = var.location
 
   tags = {
-      project     = "todo-azure"
-      environment = var.environment                                                                                                
-      managed_by  = "terraform"
-    }    
+    project     = "todo-azure"
+    environment = var.environment
+    managed_by  = "terraform"
+  }
 }

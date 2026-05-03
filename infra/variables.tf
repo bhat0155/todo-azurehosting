@@ -11,34 +11,34 @@ variable "location" {
 }
 
 variable "environment" {
-  type        = string
-  default     = "prod"
+  type    = string
+  default = "prod"
 }
 
 
 variable "vm_size" {
-  type        = string
-  default     = "Standard_D2s_v3"
+  type    = string
+  default = "Standard_D2s_v3"
 }
 
 variable "admin_username" {
-  type        = string
-  default     = "azureuser"
+  type    = string
+  default = "azureuser"
 }
 
 variable "ssh_public_key_path" {
-  type        = string
-  default     = "~/.ssh/id_rsa.pub"
+  type    = string
+  default = "~/.ssh/id_rsa.pub"
 }
 
 variable "db_user" {
-  type        = string
-  default     = "todouser"
+  type      = string
+  default   = "todouser"
   sensitive = true
 }
 
 
 variable "db_password" {
-  type        = string
+  type      = string
   sensitive = true
 }

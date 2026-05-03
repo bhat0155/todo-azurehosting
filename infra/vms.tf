@@ -3,7 +3,7 @@ resource "azurerm_public_ip" "frontend" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   allocation_method   = "Static"
-  sku = "Standard"
+  sku                 = "Standard"
 
 }
 
@@ -18,8 +18,8 @@ resource "azurerm_network_interface" "frontend" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.frontend.id
     private_ip_address_allocation = "Static"
-    private_ip_address = "10.0.0.4"
-    public_ip_address_id = azurerm_public_ip.frontend.id
+    private_ip_address            = "10.0.0.4"
+    public_ip_address_id          = azurerm_public_ip.frontend.id
   }
 }
 
@@ -33,7 +33,7 @@ resource "azurerm_network_interface" "backend" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.backend.id
     private_ip_address_allocation = "Static"
-    private_ip_address = "10.0.1.4"
+    private_ip_address            = "10.0.1.4"
   }
 }
 
@@ -47,7 +47,7 @@ resource "azurerm_network_interface" "database" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.database.id
     private_ip_address_allocation = "Static"
-    private_ip_address = "10.0.2.4"
+    private_ip_address            = "10.0.2.4"
   }
 }
 
