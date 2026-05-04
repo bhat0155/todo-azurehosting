@@ -26,11 +26,6 @@ variable "admin_username" {
   default = "azureuser"
 }
 
-variable "ssh_public_key_path" {
-  type    = string
-  default = "~/.ssh/id_rsa.pub"
-}
-
 variable "db_user" {
   type      = string
   default   = "todouser"
@@ -44,3 +39,8 @@ variable "db_password" {
   default   = "somevalue"
 }
 
+                                                                                                                               
+variable "ssh_public_key" {
+  description = "SSH public key content"
+  type        = string
+}
