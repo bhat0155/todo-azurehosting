@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 760" width="660" height="760" font-family="Arial, sans-serif" font-size="13">
+
+  <rect width="660" height="760" fill="#f8f9fa" rx="10"/>
+
+  <text x="330" y="32" text-anchor="middle" font-size="16" font-weight="bold" fill="#222">Terraform Workflow &amp; CI/CD Pipeline</text>
+
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#555"/>
+    </marker>
+  </defs>
+
+  <!-- Box 1: Write .tf Files -->
+  <rect x="220" y="50" width="220" height="40" rx="6" fill="#e3f2fd" stroke="#1976d2" stroke-width="1.5"/>
+  <text x="330" y="75" text-anchor="middle" font-weight="bold" fill="#0d47a1">Write .tf Files</text>
+
+  <line x1="330" y1="90" x2="330" y2="118" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 2: terraform init -->
+  <rect x="220" y="120" width="220" height="40" rx="6" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1.5"/>
+  <text x="330" y="145" text-anchor="middle" font-weight="bold" fill="#4a148c">terraform init</text>
+
+  <line x1="330" y1="160" x2="330" y2="188" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 3: terraform fmt -check -->
+  <rect x="220" y="190" width="220" height="40" rx="6" fill="#e8f5e9" stroke="#388e3c" stroke-width="1.5"/>
+  <text x="330" y="215" text-anchor="middle" font-weight="bold" fill="#1b5e20">terraform fmt -check</text>
+
+  <line x1="330" y1="230" x2="330" y2="258" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 4: terraform validate -->
+  <rect x="220" y="260" width="220" height="40" rx="6" fill="#e8f5e9" stroke="#388e3c" stroke-width="1.5"/>
+  <text x="330" y="285" text-anchor="middle" font-weight="bold" fill="#1b5e20">terraform validate</text>
+
+  <line x1="330" y1="300" x2="330" y2="328" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box 5: terraform plan -->
+  <rect x="220" y="330" width="220" height="40" rx="6" fill="#fff3e0" stroke="#f57c00" stroke-width="1.5"/>
+  <text x="330" y="355" text-anchor="middle" font-weight="bold" fill="#e65100">terraform plan</text>
+
+  <line x1="330" y1="370" x2="330" y2="398" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Diamond: Running where? center=(330,428) -->
+  <polygon points="330,400 440,428 330,456 220,428" fill="#fffde7" stroke="#f9a825" stroke-width="1.5"/>
+  <text x="330" y="424" text-anchor="middle" font-size="11" font-weight="bold" fill="#e65100">Running</text>
+  <text x="330" y="440" text-anchor="middle" font-size="11" font-weight="bold" fill="#e65100">where?</text>
+
+  <!-- Left branch arrow: Pull Request -->
+  <line x1="220" y1="428" x2="120" y2="428" stroke="#555" stroke-width="1.5"/>
+  <line x1="120" y1="428" x2="120" y2="508" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="168" y="418" text-anchor="middle" font-size="10" fill="#555">Pull Request</text>
+
+  <!-- Left box: Plan posted to PR -->
+  <rect x="20" y="510" width="200" height="52" rx="6" fill="#e3f2fd" stroke="#1976d2" stroke-width="1.5"/>
+  <text x="120" y="532" text-anchor="middle" font-size="12" font-weight="bold" fill="#0d47a1">Plan posted to PR</text>
+  <text x="120" y="550" text-anchor="middle" font-size="10" fill="#1565c0">Team reviews before merge</text>
+
+  <!-- Right branch arrow: Merge to main -->
+  <line x1="440" y1="428" x2="540" y2="428" stroke="#555" stroke-width="1.5"/>
+  <line x1="540" y1="428" x2="540" y2="508" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="492" y="418" text-anchor="middle" font-size="10" fill="#555">Merge to main</text>
+
+  <!-- Right box: terraform apply -->
+  <rect x="440" y="510" width="200" height="40" rx="6" fill="#fce4ec" stroke="#c62828" stroke-width="1.5"/>
+  <text x="540" y="535" text-anchor="middle" font-weight="bold" fill="#b71c1c">terraform apply</text>
+
+  <line x1="540" y1="550" x2="540" y2="588" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box: Update Remote State -->
+  <rect x="440" y="590" width="200" height="44" rx="6" fill="#ede7f6" stroke="#6a1b9a" stroke-width="1.5"/>
+  <text x="540" y="610" text-anchor="middle" font-size="12" font-weight="bold" fill="#4a148c">Update Remote State</text>
+  <text x="540" y="626" text-anchor="middle" font-size="10" fill="#6a1b9a">Azure Blob Storage</text>
+
+  <line x1="540" y1="634" x2="540" y2="662" stroke="#555" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Box: Provision Resources -->
+  <rect x="440" y="664" width="200" height="44" rx="6" fill="#e0f2f1" stroke="#00695c" stroke-width="1.5"/>
+  <text x="540" y="684" text-anchor="middle" font-size="12" font-weight="bold" fill="#004d40">Provision Azure Resources</text>
+  <text x="540" y="700" text-anchor="middle" font-size="10" fill="#00695c">VMs · VNet · NSGs · NAT GW</text>
+
+  <!-- OIDC side note -->
+  <rect x="492" y="122" width="158" height="76" rx="6" fill="#f1f8e9" stroke="#7cb342" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="571" y="146" text-anchor="middle" font-size="11" font-weight="bold" fill="#33691e">OIDC Auth</text>
+  <text x="571" y="163" text-anchor="middle" font-size="10" fill="#558b2f">No stored secrets</text>
+  <text x="571" y="178" text-anchor="middle" font-size="10" fill="#558b2f">GitHub JWT → Azure AD</text>
+  <text x="571" y="193" text-anchor="middle" font-size="10" fill="#558b2f">Short-lived access token</text>
+
+  <!-- Dashed line from terraform init to OIDC -->
+  <line x1="440" y1="140" x2="490" y2="152" stroke="#7cb342" stroke-width="1.2" stroke-dasharray="4,3"/>
+
+</svg>

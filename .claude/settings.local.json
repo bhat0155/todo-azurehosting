@@ -5,7 +5,8 @@
       "Bash(az --version)",
       "Bash(az account *)",
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f'Subscription: {d[\\\\\"name\\\\\"]} \\({d[\\\\\"id\\\\\"]}\\)'\\)\")",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(grep -E \"\\\\.\\(yml|yaml|json|tfvars\\)$|\\\\.github\")"
     ]
   }
 }
