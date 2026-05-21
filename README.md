@@ -8,9 +8,10 @@ A full-stack todo application with a React frontend, Express/Prisma backend, and
 
 1. [Project Structure](#project-structure)
 2. [Tech Stack](#tech-stack)
-3. [Local Development](#local-development)
-4. [API Reference](#api-reference)
-5. [Azure Deployment](#azure-deployment)
+3. [Docker](#docker)
+4. [Local Development](#local-development)
+5. [API Reference](#api-reference)
+6. [Azure Deployment](#azure-deployment)
 
 ---
 
@@ -40,6 +41,41 @@ todo-azure/
 | Backend  | Node.js, Express 5, Prisma 5        |
 | Database | PostgreSQL                          |
 | Deploy   | Azure VMs, Nginx, PM2               |
+
+---
+
+## Docker
+
+The easiest way to run the full stack locally. No need to install Node.js or PostgreSQL — Docker handles everything.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
+
+### Run
+
+```bash
+docker compose up --build
+```
+
+| Service  | URL                     |
+|----------|-------------------------|
+| Frontend | http://localhost:8080   |
+| Backend  | http://localhost:3001   |
+
+The backend runs database migrations automatically on startup. Data is persisted in a named Docker volume (`postgres_data`), so it survives container restarts.
+
+To stop and remove containers:
+
+```bash
+docker compose down
+```
+
+To also remove the database volume:
+
+```bash
+docker compose down -v
+```
 
 ---
 
