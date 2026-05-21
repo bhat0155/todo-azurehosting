@@ -24,9 +24,9 @@ The runtime services are:
 
 | Layer | Technology | Local port |
 | --- | --- | --- |
-| Frontend | React built by Vite, served by a web server | `8080` when Dockerized |
+| Frontend | React built by Vite, served by Vite preview | `8080` when Dockerized |
 | Backend | Node.js, Express, Prisma | `3001` |
-| Database | PostgreSQL | `5432` inside Docker network, optionally exposed locally |
+| Database | PostgreSQL | `5432` inside Docker network |
 
 Without Docker, a developer needs Node.js, npm, PostgreSQL, the right database user, Prisma migrations, and multiple terminal sessions. Docker packages these moving parts into repeatable containers.
 
@@ -90,16 +90,7 @@ The backend and frontend each have their own `package-lock.json`. Docker can use
 
 That is more reliable than `npm install` in deployment-style environments.
 
-### 5. Better production parity
-
-The frontend should not normally be served by the Vite development server in production. A better production pattern is:
-
-1. Build React static assets with Vite.
-2. Serve the generated files through Nginx.
-
-Docker makes this clean by using a multi-stage frontend image.
-
-### 6. Easier future CI/CD
+### 5. Easier future CI/CD
 
 Once Docker exists, a pipeline can:
 
@@ -112,14 +103,14 @@ That is easier to automate than SSHing into machines and manually installing pac
 
 ## Recommended Docker architecture
 
-For this project, use Docker Compose locally with three services:
+For this project, use Docker Compose locally with three services. This setup is intended for local development and validation, not production serving.
 
 ```text
 Browser
   |
   | http://localhost:8080
   v
-frontend container: Nginx serving React build
+frontend container: Vite preview serving React build
   |
   | API requests to http://localhost:3001
   v
@@ -144,12 +135,12 @@ Add these files to the project:
 ```text
 todo-azure/
 ├── docker-compose.yml
-├── .dockerignore
 ├── backend/
-│   └── Dockerfile
+│   ├── Dockerfile
+│   └── .dockerignore
 └── frontend/
     ├── Dockerfile
-    └── nginx.conf
+    └── .dockerignore
 ```
 
 You do not need to modify the application code to get a basic Docker setup running.
@@ -180,25 +171,29 @@ docker info
 
 If `docker info` fails, Docker is not running or your user does not have permission to access the Docker daemon.
 
-## Step 2: Add a root `.dockerignore`
+## Step 2: Add `.dockerignore` files
 
-Create `.dockerignore` at the repository root:
+Each service has its own build context (`./backend` and `./frontend`), so each needs its own `.dockerignore`. A root `.dockerignore` at the repository root does not apply to these per-directory build contexts.
+
+Create `backend/.dockerignore`:
 
 ```dockerignore
-.git
-.github
 node_modules
-frontend/node_modules
-backend/node_modules
-azureuser@52.146.16.213/node_modules
-dist
-frontend/dist
 npm-debug.log
-.DS_Store
 .env
-backend/.env
-frontend/.env
-*.md
+.DS_Store
+```
+
+Create `frontend/.dockerignore`:
+
+```dockerignore
+node_modules
+dist
+npm-debug.log
+.env
+.env.local
+.env.production
+.DS_Store
 ```
 
 Why this matters:
@@ -206,8 +201,7 @@ Why this matters:
 - It keeps images smaller.
 - It prevents local dependencies from being copied into containers.
 - It avoids accidentally baking local secrets into images.
-
-If you want Markdown files inside images for some reason, remove `*.md`. For this app, runtime containers do not need documentation files.
+- Ignoring `dist` in the frontend is intentional: the Dockerfile builds a fresh `dist` inside the container, so the host copy should be excluded.
 
 ## Step 3: Add the backend Dockerfile
 
@@ -246,7 +240,7 @@ Important: Prisma needs `DATABASE_URL` at runtime for queries. The value will co
 Create `frontend/Dockerfile`:
 
 ```dockerfile
-FROM node:20-alpine AS build
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -256,24 +250,22 @@ RUN npm ci
 COPY . .
 ARG VITE_API_URL=http://localhost:3001
 ENV VITE_API_URL=$VITE_API_URL
+
 RUN npm run build
 
-FROM nginx:1.27-alpine
-
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 4173
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0"]
 ```
 
 What this does:
 
-- Uses Node.js only to build the React app.
-- Produces static files in `frontend/dist`.
-- Copies those files into a smaller Nginx image.
-- Serves the frontend on container port `80`.
+- Starts from a Node.js 20 Linux image.
+- Installs frontend dependencies from `package-lock.json`.
+- Builds the React app with Vite, producing static files in `dist`.
+- Serves the built app using `vite preview` on port `4173`.
+- `--host 0.0.0.0` is required so that the Vite preview server accepts connections from outside the container.
+
+This is a local development and validation setup. For production serving, see the note on Nginx below.
 
 The frontend currently reads:
 
@@ -285,30 +277,7 @@ Vite injects `VITE_API_URL` at build time, not runtime. That means changing the 
 
 For local Docker, `http://localhost:3001` works because the browser runs on your laptop and can reach the backend through the published backend port.
 
-## Step 5: Add the frontend Nginx config
-
-Create `frontend/nginx.conf`:
-
-```nginx
-server {
-    listen 80;
-    server_name _;
-
-    root /usr/share/nginx/html;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-Why this matters:
-
-- Nginx serves the compiled React files.
-- `try_files` allows React routing to work if routes are added later.
-
-## Step 6: Add Docker Compose
+## Step 5: Add Docker Compose
 
 Create `docker-compose.yml` at the repository root:
 
@@ -316,14 +285,11 @@ Create `docker-compose.yml` at the repository root:
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: todo-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: tododb
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -335,7 +301,6 @@ services:
   backend:
     build:
       context: ./backend
-    container_name: todo-backend
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/tododb?schema=public
@@ -351,10 +316,9 @@ services:
       context: ./frontend
       args:
         VITE_API_URL: http://localhost:3001
-    container_name: todo-frontend
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "8080:4173"
     depends_on:
       - backend
 
@@ -365,14 +329,25 @@ volumes:
 What Compose does here:
 
 - Creates a private Docker network for all services.
-- Starts PostgreSQL first.
-- Waits until PostgreSQL is healthy.
-- Starts the backend.
-- Runs Prisma migrations before starting Express.
+- Starts PostgreSQL first and waits until it is healthy.
+- Starts the backend and runs Prisma migrations before starting Express.
 - Builds and starts the frontend.
 - Persists PostgreSQL data in the `postgres_data` volume.
 
-## Step 7: Build and run the full app
+### Optional: expose Postgres to the host
+
+By default, Postgres is only reachable inside the Docker network. If you want to connect from your laptop using a database GUI like TablePlus or the `psql` CLI, add a `ports` entry under the `postgres` service:
+
+```yaml
+postgres:
+  ...
+  ports:
+    - "5432:5432"
+```
+
+This is not required for the app to run.
+
+## Step 6: Build and run the full app
 
 From the repository root:
 
@@ -387,7 +362,6 @@ When everything is running:
 - Frontend: `http://localhost:8080`
 - Backend: `http://localhost:3001`
 - Backend todos API: `http://localhost:3001/todos`
-- PostgreSQL: `localhost:5432`
 
 Open the frontend in your browser:
 
@@ -397,7 +371,7 @@ http://localhost:8080
 
 Create a todo. If it appears in the list and survives a browser refresh, the frontend, backend, Prisma, and PostgreSQL are working together.
 
-## Step 8: Useful Docker commands
+## Step 7: Useful Docker commands
 
 Start the app:
 
@@ -468,7 +442,7 @@ docker compose exec backend npx prisma studio
 
 Note: Prisma Studio usually needs an exposed port to be useful from your host machine. It is not required for the app to run.
 
-## Step 9: Validate the app from the terminal
+## Step 8: Validate the app from the terminal
 
 Check backend root route:
 
@@ -490,7 +464,7 @@ curl -X POST http://localhost:3001/todos \
   -d '{"title":"Learn Docker"}'
 ```
 
-Check that the frontend container serves HTML:
+Check that the frontend container is serving:
 
 ```bash
 curl -I http://localhost:8080
@@ -548,7 +522,7 @@ docker compose up -d frontend
 
 ## Development workflow with Docker
 
-The Docker setup above is production-like: it builds the frontend and serves static files. That is good for validating the full app, but it does not provide frontend hot reload.
+The Docker setup above builds the frontend and serves the built output via `vite preview`. That is good for validating the full app, but it does not provide frontend hot reload.
 
 For everyday development, there are two common options.
 
@@ -583,9 +557,56 @@ This gives you Vite hot reload while avoiding local PostgreSQL setup.
 
 You can add `docker-compose.dev.yml` with bind mounts and Vite dev server support. That is useful on larger teams, but the initial Compose file should stay simple and reliable.
 
+## A note on Nginx
+
+For production, static React assets are commonly served by Nginx or another web server rather than a Node.js process. This project's Azure deployment already uses Nginx on the frontend VM, so local Docker does not need to add Nginx unless you specifically want to test that serving layer.
+
+If you do want to replicate a production-like Nginx setup locally, a multi-stage frontend Dockerfile would look like this:
+
+```dockerfile
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+ARG VITE_API_URL=http://localhost:3001
+ENV VITE_API_URL=$VITE_API_URL
+RUN npm run build
+
+FROM nginx:1.27-alpine
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+You would also need a `frontend/nginx.conf`:
+
+```nginx
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+And update the port mapping in Compose to `8080:80`. This is optional and not required for local development or validation.
+
 ## Production considerations
 
-The local Compose setup is a strong starting point, but a production Docker deployment should improve several areas:
+The local Compose setup is a strong starting point, but a production Docker deployment should improve several areas.
 
 ### Use real secrets
 
@@ -599,9 +620,7 @@ Use a secret manager, CI/CD protected variables, or Azure Key Vault.
 
 ### Do not expose Postgres publicly
 
-For local development, exposing `5432:5432` is convenient.
-
-In production, the database should usually stay private. The backend should be able to reach it, but the internet should not.
+In production, the database should stay private. The backend should reach it, but the internet should not.
 
 ### Add backend health checks
 
