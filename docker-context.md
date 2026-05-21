@@ -722,6 +722,118 @@ docker compose up --build
 
 Be careful: `docker compose down -v` deletes the local database volume for this Compose project.
 
+## Debugging and logging in practice
+
+Start the stack in the background first:
+
+```bash
+docker compose up --build -d
+```
+
+---
+
+### Reading logs
+
+```bash
+# Follow logs for one service
+docker compose logs -f backend
+docker compose logs -f frontend
+docker compose logs -f postgres
+
+# Static snapshot — no -f
+docker compose logs backend
+
+# Last 50 lines only
+docker compose logs --tail=50 backend
+```
+
+Docker captures everything the app writes to stdout and stderr. If the container exited, logs are still available — this is the first place to look.
+
+---
+
+### Getting inside a running container
+
+```bash
+docker compose exec backend sh
+```
+
+Once inside you can poke around freely:
+
+```sh
+ls /app                   # are your files actually there?
+env                       # what environment variables does the process see?
+env | grep DATABASE_URL   # check a specific variable
+cat /app/server.js        # read a file from inside the container
+```
+
+Type `exit` to leave.
+
+---
+
+### Checking what processes are running
+
+```bash
+# From outside the container
+docker compose exec backend ps aux
+
+# Shows process list with PID and CPU/memory
+docker top $(docker compose ps -q backend)
+```
+
+If the Node process is not listed, the app crashed. Read logs next.
+
+---
+
+### Checking which port and interface the app is bound to
+
+```bash
+docker compose exec backend netstat -tulnp
+```
+
+Look at the Local Address column:
+
+- `0.0.0.0:3001` — correct, Docker can forward traffic to it
+- `127.0.0.1:3001` — wrong, the app is only listening on loopback inside the container, so `-p 3001:3001` does nothing
+
+---
+
+### Inspecting container metadata without entering it
+
+```bash
+# See environment variables
+docker inspect $(docker compose ps -q backend) --format='{{.Config.Env}}'
+
+# See mounts (volumes and bind mounts attached)
+docker inspect $(docker compose ps -q backend) --format='{{.Mounts}}'
+
+# See exit code of a stopped container
+docker inspect $(docker compose ps -q backend) --format='{{.State.ExitCode}}'
+```
+
+Non-zero exit code means the process crashed. Zero exit code on a container that should be running long-term also means a problem.
+
+---
+
+### Debugging a container that exits immediately
+
+You cannot `exec` into a stopped container. Instead, run it with a shell override so you get inside before the app starts:
+
+```bash
+docker compose run --rm backend sh
+```
+
+From inside, manually run the startup steps one by one:
+
+```sh
+ls /app
+env | grep DATABASE_URL
+node server.js
+```
+
+This tells you exactly which step is failing.
+
+---
+
 ## Final expected runbook
 
 After adding the Docker files, a new engineer should be able to run the entire app like this:
