@@ -33,7 +33,7 @@ services:
         VITE_API_URL: http://localhost:3001
     restart: unless-stopped
     ports:
-      - "8080:4173"
+      - "3000:4173"
     depends_on: 
       - backend
 
