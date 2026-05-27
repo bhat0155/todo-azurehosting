@@ -17,13 +17,13 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'docker compose build'
+                sh 'docker-compose build'
             }
         }
 
         stage('Test') {
             steps {
-                sh 'docker compose run --rm backend sh -c "npm test --if-present"'
+                sh 'docker-compose run --rm backend sh -c "npm test --if-present"'
             }
         }
 
@@ -51,7 +51,7 @@ pipeline {
 
         stage('Run') {
             steps {
-                sh 'docker compose up -d'
+                sh 'docker-compose up -d'
             }
         }
     }
@@ -61,7 +61,7 @@ pipeline {
             echo 'App is up and running on this machine.'
         }
         failure {
-            sh 'docker compose down'
+            sh 'docker-compose down'
             echo 'Pipeline failed. Containers stopped.'
         }
     }
