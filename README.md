@@ -60,7 +60,7 @@ docker compose up --build
 
 | Service  | URL                     |
 |----------|-------------------------|
-| Frontend | http://localhost:8080   |
+| Frontend | http://localhost:3000   |
 | Backend  | http://localhost:3001   |
 
 The backend runs database migrations automatically on startup. Data is persisted in a named Docker volume (`postgres_data`), so it survives container restarts.
