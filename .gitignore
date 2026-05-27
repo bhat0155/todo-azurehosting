@@ -9,3 +9,4 @@ infra/terraform.tfstate
 infra/terraform.tfstate.backup
 infra/*.tfvars
 docker-context.md
+jenkins.md
