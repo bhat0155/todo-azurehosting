@@ -36,12 +36,12 @@ pipeline {
                 )]) {
                     sh '''
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker tag todo-azure-backend $IMAGE_BACKEND:$BUILD_NUMBER
-                        docker tag todo-azure-frontend $IMAGE_FRONTEND:$BUILD_NUMBER
+                        docker tag todo-pipeline-backend $IMAGE_BACKEND:$BUILD_NUMBER
+                        docker tag todo-pipeline-frontend $IMAGE_FRONTEND:$BUILD_NUMBER
                         docker push $IMAGE_BACKEND:$BUILD_NUMBER
                         docker push $IMAGE_FRONTEND:$BUILD_NUMBER
-                        docker tag todo-azure-backend $IMAGE_BACKEND:latest
-                        docker tag todo-azure-frontend $IMAGE_FRONTEND:latest
+                        docker tag todo-pipeline-backend $IMAGE_BACKEND:latest
+                        docker tag todo-pipeline-frontend $IMAGE_FRONTEND:latest
                         docker push $IMAGE_BACKEND:latest
                         docker push $IMAGE_FRONTEND:latest
                     '''
